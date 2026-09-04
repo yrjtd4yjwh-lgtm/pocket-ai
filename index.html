@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="zh-CN">
 <head>
@@ -7,6 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 <div class="app">
 
@@ -16,7 +18,8 @@
 
 <div class="card">
 <p>本月结余</p>
-<h2 id="balance">¥0</h2>
+<div class="big" id="balance">¥0</div>
+
 <div class="grid">
 <div>收入<strong id="income">¥0</strong></div>
 <div>支出<strong id="expense">¥0</strong></div>
@@ -26,7 +29,7 @@
 
 <div class="card">
 <h3>AI提醒</h3>
-<p id="aiText">等待消费数据。</p>
+<p id="tip">记录消费后自动分析。</p>
 </div>
 
 <button onclick="show('add')">＋ 记一笔</button>
@@ -34,62 +37,50 @@
 
 
 <section id="add" class="page">
-<h1>新增记录</h1>
+<h1>记一笔</h1>
+
 <input id="amount" type="number" placeholder="金额">
-<select id="type">
+
+<select id="type" onchange="changeCategory()">
 <option value="expense">支出</option>
 <option value="income">收入</option>
 </select>
-<select id="category">
-<option>🍜 餐饮</option>
-<option>🚗 交通</option>
-<option>🛒 购物</option>
-<option>☕ 咖啡</option>
-<option>🏠 住房</option>
-<option>🎮 娱乐</option>
-<option>📚 学习</option>
-<option>📦 其他</option>
-</select>
+
+<select id="category"></select>
+
 <input id="note" placeholder="备注">
+
 <button onclick="save()">保存</button>
 </section>
 
 
 <section id="bill" class="page">
 <h1>账单</h1>
-<input id="search" placeholder="搜索消费" oninput="update()">
+
+<input id="search" placeholder="搜索消费" oninput="refresh()">
+
 <div id="records"></div>
 </section>
 
 
 <section id="analysis" class="page">
 <h1>分析</h1>
-<div class="card">
-<h2 id="score">--</h2>
-<p>财务健康评分</p>
-</div>
-<div class="card">
-<h3>分类预算</h3>
-<p id="budgetReport"></p>
-</div>
-</section>
 
-
-<section id="review" class="page">
-<h1>月末复盘</h1>
 <div class="card">
-<p id="reviewText"></p>
+<h3>本月消费排行</h3>
+<div id="rank"></div>
 </div>
+
 </section>
 
 
 <section id="mine" class="page">
 <h1>我的</h1>
+
 <div class="card">
-<h3>分类预算设置</h3>
-<input id="foodBudget" placeholder="餐饮预算">
-<input id="shopBudget" placeholder="购物预算">
-<button onclick="saveBudget()">保存</button>
+<p>数据安全</p>
+<p>Pocket AI V2.4 Stable</p>
+<button onclick="backup()">导出数据</button>
 </div>
 </section>
 
@@ -98,11 +89,11 @@
 <button onclick="show('home')">首页</button>
 <button onclick="show('bill')">账单</button>
 <button onclick="show('analysis')">分析</button>
-<button onclick="show('review')">复盘</button>
 <button onclick="show('mine')">我的</button>
 </nav>
 
 </div>
+
 <script src="app.js"></script>
 </body>
 </html>

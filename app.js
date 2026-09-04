@@ -1,96 +1,167 @@
-let data=JSON.parse(localStorage.getItem('pocket_ai_data')||'[]');
-let budgets=JSON.parse(localStorage.getItem('pocket_ai_budget')||'{}');
 
-function show(id){
-document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
-document.getElementById(id).classList.add('active');
-update();
+const DB_NAME="PocketAI_DB";
+const STORE="records";
+
+let data=[];
+let incomeTypes=["工资","奖金","兼职","生活费","红包","其他"];
+let expenseTypes=["🍜 餐饮","🛒 购物","🚗 交通","🏠 住房","🎮 娱乐","📚 学习","📦 其他"];
+
+
+function openDB(){
+return new Promise(resolve=>{
+let req=indexedDB.open(DB_NAME,1);
+
+req.onupgradeneeded=e=>{
+let db=e.target.result;
+if(!db.objectStoreNames.contains(STORE)){
+db.createObjectStore(STORE,{keyPath:"id"});
+}
+};
+
+req.onsuccess=e=>resolve(e.target.result);
+});
 }
 
-function save(){
-let a=Number(amount.value);
-if(!a)return;
-data.unshift({
+
+async function init(){
+
+let old=localStorage.getItem("pocket_ai_data");
+
+let db=await openDB();
+
+if(old){
+let oldData=JSON.parse(old);
+let tx=db.transaction(STORE,"readwrite");
+let store=tx.objectStore(STORE);
+
+oldData.forEach(x=>{
+store.put(x);
+});
+
+localStorage.removeItem("pocket_ai_data");
+}
+
+
+load();
+}
+
+
+async function load(){
+
+let db=await openDB();
+let tx=db.transaction(STORE,"readonly");
+let req=tx.objectStore(STORE).getAll();
+
+req.onsuccess=e=>{
+data=e.target.result;
+refresh();
+}
+}
+
+
+function show(id){
+document.querySelectorAll(".page")
+.forEach(x=>x.classList.remove("active"));
+
+document.getElementById(id).classList.add("active");
+refresh();
+}
+
+
+function changeCategory(){
+
+let arr=type.value==="income"?incomeTypes:expenseTypes;
+
+category.innerHTML=arr.map(x=>`<option>${x}</option>`).join("");
+
+}
+
+changeCategory();
+
+
+async function save(){
+
+let item={
 id:Date.now(),
-amount:a,
+amount:Number(amount.value),
 type:type.value,
 category:category.value,
 note:note.value,
 date:new Date().toLocaleDateString()
-});
-localStorage.setItem('pocket_ai_data',JSON.stringify(data));
-show('bill');
-}
-
-function saveBudget(){
-budgets={
-'🍜 餐饮':Number(foodBudget.value)||0,
-'🛒 购物':Number(shopBudget.value)||0
 };
-localStorage.setItem('pocket_ai_budget',JSON.stringify(budgets));
-update();
+
+let db=await openDB();
+let tx=db.transaction(STORE,"readwrite");
+
+tx.objectStore(STORE).put(item);
+
+amount.value="";
+note.value="";
+
+load();
+show("bill");
 }
 
-function del(id){
-data=data.filter(x=>x.id!==id);
-localStorage.setItem('pocket_ai_data',JSON.stringify(data));
-update();
-}
 
-function update(){
-let income=0,expense=0,cats={};
-let key=(document.getElementById('search')||{}).value||'';
+function refresh(){
 
-data.filter(x=>(x.category+x.note).includes(key)).forEach(x=>{
-if(x.type==='income')income+=x.amount;
+let inc=0;
+let exp=0;
+let cats={};
+
+data.forEach(x=>{
+if(x.type==="income")
+inc+=x.amount;
 else{
-expense+=x.amount;
+exp+=x.amount;
 cats[x.category]=(cats[x.category]||0)+x.amount;
 }
 });
 
-balance.innerText='¥'+(income-expense);
-document.getElementById('income').innerText='¥'+income;
-document.getElementById('expense').innerText='¥'+expense;
-remain.innerText='¥'+(income-expense);
 
-records.innerHTML=data.map(x=>`
+income.innerText="¥"+inc;
+expense.innerText="¥"+exp;
+balance.innerText="¥"+(inc-exp);
+remain.innerText="¥"+(inc-exp);
+
+let key=(search.value||"");
+
+records.innerHTML=data
+.filter(x=>(x.category+x.note).includes(key))
+.map(x=>`
 <div class="record">
 <span>${x.category}<br>${x.note||x.date}</span>
-<span>${x.type==='income'?'+':'-'}¥${x.amount}<br>
-<button onclick="del(${x.id})">删除</button></span>
-</div>`).join('');
+<span>${x.type==="income"?"+":"-"}¥${x.amount}</span>
+</div>
+`).join("")||"暂无记录";
 
-let score=85;
-let msg='本月消费状态良好。';
 
-if(expense>income){
-score=60;
-msg='本月支出超过收入，需要控制消费。';
+let rank=Object.entries(cats)
+.sort((a,b)=>b[1]-a[1]);
+
+document.getElementById("rank").innerHTML=
+rank.map(x=>`<div class="rank">${x[0]}　¥${x[1]}</div>`).join("")
+||"暂无消费";
+
+
+tip.innerText=rank[0]
+?"本月最大消费："+rank[0][0]+" ¥"+rank[0][1]
+:"开始记录你的第一笔消费";
 }
 
-if(cats['🍜 餐饮'] && budgets['🍜 餐饮'] && cats['🍜 餐饮']>budgets['🍜 餐饮']){
-msg+=' 餐饮预算已超支。';
+
+function backup(){
+
+let blob=new Blob([JSON.stringify(data,null,2)]);
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="PocketAI_backup.json";
+a.click();
 }
 
-aiText.innerText=msg;
-score.innerText=score;
 
-reviewText.innerText=
-'本月复盘：收入 ¥'+income+
-'，支出 ¥'+expense+
-'，结余 ¥'+(income-expense)+
-'。';
-
-budgetReport.innerText=
-Object.entries(cats).map(x=>{
-let b=budgets[x[0]];
-return x[0]+' ¥'+x[1]+(b?' /预算 ¥'+b:'');
-}).join('\n')||'暂无数据';
+if("serviceWorker" in navigator){
+navigator.serviceWorker.register("service-worker.js");
 }
 
-update();
-
-if('serviceWorker' in navigator){
-navigator.serviceWorker.register('service-worker.js');
-}
+init();
