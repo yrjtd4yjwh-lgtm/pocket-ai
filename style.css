@@ -1,23 +1,14 @@
-
 *{box-sizing:border-box}
-body{margin:0;background:#f8f8fa;color:#111;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial}
-.app{max-width:430px;margin:auto;padding-bottom:90px}
-.page{display:none;padding:28px 20px}.page.active{display:block}
-h1{font-size:34px}
-.sub{color:#888}
-.card{background:white;border-radius:24px;padding:22px;margin:18px 0;box-shadow:0 8px 25px #00000010}
-.hero h2{font-size:44px;margin:10px 0}
+body{margin:0;background:#f8f8fa;font-family:-apple-system,BlinkMacSystemFont,Arial;color:#111}
+.app{max-width:430px;margin:auto;padding:25px 20px 90px}
+.page{display:none}.page.active{display:block}
+h1{font-size:30px}.sub{color:#888}
+.card{background:#fff;border-radius:24px;padding:22px;margin:18px 0}
+.card h2{font-size:42px}
 .grid{display:flex;justify-content:space-between}
-.grid div{color:#888}
-.grid strong{display:block;color:#111;margin-top:6px}
-.bar{height:8px;background:#eee;border-radius:8px}
-.bar div{height:100%;background:#007aff;border-radius:8px;width:0}
-input,select,button{width:100%;height:52px;border:0;border-radius:16px;margin:8px 0;font-size:16px;padding:0 15px}
-button{background:#007aff;color:white}
-.row{display:flex;gap:10px}
-.plus{position:fixed;right:25px;bottom:100px;width:60px;height:60px;border-radius:50%;font-size:32px}
-.record{background:white;border-radius:16px;padding:16px;margin:10px 0;display:flex;justify-content:space-between}
-.expense{color:#ff3b30}.income{color:#34c759}
-.center{text-align:center}
-nav{position:fixed;bottom:0;left:0;width:100%;max-width:430px;background:white;height:70px;display:flex;justify-content:space-around}
+.grid strong{display:block}
+input,select,button{width:100%;height:52px;border:0;border-radius:16px;margin:8px 0;padding:0 15px;font-size:16px}
+button{background:#007AFF;color:white}
+.record{background:white;border-radius:16px;padding:15px;margin:10px 0;display:flex;justify-content:space-between}
+nav{position:fixed;bottom:0;width:100%;max-width:430px;height:70px;background:white;display:flex;justify-content:space-around}
 nav button{background:none;color:#111;width:auto}
